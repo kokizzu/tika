@@ -255,7 +255,13 @@ public class TikaServerIntegrationTest extends IntegrationTestBase {
             if (!finished) {
                 fail("should have completed by now");
             }
-            assertEquals(255, p.exitValue());
+            String os = System.getProperty("os.name");
+            if (os.startsWith("Windows")) {
+                assertEquals(-1, p.exitValue());
+            }
+            else {
+                assertEquals(255, p.exitValue());
+            }
         } finally {
             if (p != null) {
                 p.destroyForcibly();
@@ -324,16 +330,14 @@ public class TikaServerIntegrationTest extends IntegrationTestBase {
     @Test
     public void testStdErrOutLogging() throws Exception {
         final AtomicInteger i = new AtomicInteger();
-        Thread serverThread = new Thread() {
-            @Override
-            public void run() {
-                TikaServerCli.main(new String[]{"-p", INTEGRATION_TEST_PORT, "-taskTimeoutMillis",
-                        "10000", "-taskPulseMillis", "500", "-pingPulseMillis", "100",
-                        "-maxRestarts", "0",
-                        "-JDlog4j.configuration=file:" + LOG_FILE.toAbsolutePath(),
-                        "-tmpFilePrefix", "tika-server-stderrlogging"});
-            }
-        };
+        Thread serverThread = new Thread(() -> TikaServerCli.main(
+                new String[]{
+                    "-p", INTEGRATION_TEST_PORT, "-taskTimeoutMillis",
+                    "10000", "-taskPulseMillis", "500", "-pingPulseMillis", "100",
+                    "-maxRestarts", "0",
+                    "-JDlog4j.configuration=file:" + LOG_FILE.toAbsolutePath(),
+                    "-tmpFilePrefix", "tika-server-stderrlogging"
+                }));
         serverThread.start();
         awaitServerStartup();
 

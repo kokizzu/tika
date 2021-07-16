@@ -60,7 +60,7 @@ public class SQLite3ParserTest extends TikaTest {
         }
 
         try (InputStream is = getResourceAsStream(TEST_FILE1);
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();) {
+                ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
             IOUtils.copy(is, bos);
             try (InputStream stream = new ByteArrayInputStream(bos.toByteArray())) {
                 _testBasic(stream);
@@ -221,7 +221,7 @@ public class SQLite3ParserTest extends TikaTest {
 
     public static class InputStreamResettingHandler implements EmbeddedResourceHandler {
 
-        public List<byte[]> bytes = new ArrayList<byte[]>();
+        public List<byte[]> bytes = new ArrayList<>();
 
         @Override
         public void handle(String filename, MediaType mediaType, InputStream stream) {

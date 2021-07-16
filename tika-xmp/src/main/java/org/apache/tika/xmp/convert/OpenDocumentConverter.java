@@ -16,7 +16,6 @@
  */
 package org.apache.tika.xmp.convert;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,15 +24,14 @@ import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.HttpHeaders;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.Office;
-import org.apache.tika.metadata.OfficeOpenXMLCore;
 import org.apache.tika.metadata.OfficeOpenXMLExtended;
 import org.apache.tika.metadata.PagedText;
 import org.apache.tika.metadata.TikaCoreProperties;
 
-import com.adobe.xmp.XMPConst;
-import com.adobe.xmp.XMPException;
-import com.adobe.xmp.XMPMeta;
-import com.adobe.xmp.options.PropertyOptions;
+import com.adobe.internal.xmp.XMPConst;
+import com.adobe.internal.xmp.XMPException;
+import com.adobe.internal.xmp.XMPMeta;
+import com.adobe.internal.xmp.options.PropertyOptions;
 
 /**
  * Tika to XMP mapping for the Open Document formats: Text (.odt), Spreatsheet (.ods), Graphics
@@ -41,8 +39,8 @@ import com.adobe.xmp.options.PropertyOptions;
  */
 public class OpenDocumentConverter extends AbstractConverter {
     protected static final Set<Namespace> ADDITIONAL_NAMESPACES = Collections
-            .unmodifiableSet( new HashSet<Namespace>( Arrays.asList( new Namespace(
-                    Office.NAMESPACE_URI_DOC_META, Office.PREFIX_DOC_META ) ) ) );
+            .unmodifiableSet(new HashSet<>(Collections.singletonList(new Namespace(
+                    Office.NAMESPACE_URI_DOC_META, Office.PREFIX_DOC_META))) );
 
     public OpenDocumentConverter() throws TikaException {
         super();

@@ -29,10 +29,10 @@ import org.apache.tika.metadata.OfficeOpenXMLCore;
 import org.apache.tika.metadata.OfficeOpenXMLExtended;
 import org.apache.tika.metadata.TikaCoreProperties;
 
-import com.adobe.xmp.XMPConst;
-import com.adobe.xmp.XMPException;
-import com.adobe.xmp.XMPMeta;
-import com.adobe.xmp.options.PropertyOptions;
+import com.adobe.internal.xmp.XMPConst;
+import com.adobe.internal.xmp.XMPException;
+import com.adobe.internal.xmp.XMPMeta;
+import com.adobe.internal.xmp.options.PropertyOptions;
 
 /**
  * Tika to XMP mapping for the Office Open XML formats Word (.docx), Excel (.xlsx) and PowerPoint
@@ -40,9 +40,9 @@ import com.adobe.xmp.options.PropertyOptions;
  */
 public class MSOfficeXMLConverter extends AbstractConverter {
     protected static final Set<Namespace> ADDITIONAL_NAMESPACES = Collections
-            .unmodifiableSet( new HashSet<Namespace>( Arrays.asList( new Namespace(
-                    OfficeOpenXMLCore.NAMESPACE_URI, OfficeOpenXMLCore.PREFIX ), new Namespace(
-                    OfficeOpenXMLExtended.NAMESPACE_URI, OfficeOpenXMLExtended.PREFIX ) ) ) );
+            .unmodifiableSet(new HashSet<>(Arrays.asList(new Namespace(
+                    OfficeOpenXMLCore.NAMESPACE_URI, OfficeOpenXMLCore.PREFIX), new Namespace(
+                    OfficeOpenXMLExtended.NAMESPACE_URI, OfficeOpenXMLExtended.PREFIX))) );
 
     public MSOfficeXMLConverter() throws TikaException {
         super();

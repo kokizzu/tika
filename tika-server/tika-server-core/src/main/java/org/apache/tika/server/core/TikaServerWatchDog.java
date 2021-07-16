@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.net.BindException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -50,17 +51,20 @@ import org.apache.tika.utils.ProcessUtils;
 public class TikaServerWatchDog implements Callable<WatchDogResult> {
 
     private static final Logger LOG = LoggerFactory.getLogger(TikaServerWatchDog.class);
-    private static final String DEFAULT_FORKED_STATUS_FILE_PREFIX =
-            "tika-server-forked-process-mmap-";
+    private static Thread SHUTDOWN_HOOK = null;
+
     private final int port;
     private final String id;
     private final TikaServerConfig tikaServerConfig;
-    private Object[] forkedStatusLock = new Object[0];
+    private final Object[] forkedStatusLock = new Object[0];
     private volatile FORKED_STATUS forkedStatus = FORKED_STATUS.INITIALIZING;
     private volatile Instant lastPing = null;
     private ForkedProcess forkedProcess = null;
     private int restarts = 0;
     private volatile boolean shutDown = false;
+
+
+
     TikaServerWatchDog(int port, String id, TikaServerConfig tikaServerConfig) {
         this.port = port;
         this.id = id;
@@ -68,20 +72,18 @@ public class TikaServerWatchDog implements Callable<WatchDogResult> {
     }
 
     private static void redirectIO(final InputStream src, final PrintStream targ) {
-        Thread gobbler = new Thread(new Runnable() {
-            public void run() {
-                BufferedReader reader =
-                        new BufferedReader(new InputStreamReader(src, StandardCharsets.UTF_8));
-                String line = null;
-                try {
+        Thread gobbler = new Thread(() -> {
+            BufferedReader reader =
+                    new BufferedReader(new InputStreamReader(src, StandardCharsets.UTF_8));
+            String line;
+            try {
+                line = reader.readLine();
+                while (line != null) {
+                    targ.println(line);
                     line = reader.readLine();
-                    while (line != null) {
-                        targ.println(line);
-                        line = reader.readLine();
-                    }
-                } catch (IOException e) {
-                    //swallow
                 }
+            } catch (IOException e) {
+                //swallow
             }
         });
         gobbler.setDaemon(true);
@@ -116,7 +118,7 @@ public class TikaServerWatchDog implements Callable<WatchDogResult> {
 
                 try {
                     if (mustRestart) {
-                        forkedProcess = new ForkedProcess(restarts++);
+                        forkedProcess = startForkedProcess(restarts++);
                         setForkedStatus(FORKED_STATUS.RUNNING);
                         mustRestart = false;
                     }
@@ -140,7 +142,7 @@ public class TikaServerWatchDog implements Callable<WatchDogResult> {
                             forkedProcess.close();
                             mustRestart = true;
                         } else {
-                            Long elapsed = Duration.between(Instant.ofEpochMilli(status.timestamp),
+                            long elapsed = Duration.between(Instant.ofEpochMilli(status.timestamp),
                                     Instant.now()).toMillis();
                             if (elapsed > tikaServerConfig.getTaskTimeoutMillis()) {
                                 LOG.info(
@@ -165,6 +167,28 @@ public class TikaServerWatchDog implements Callable<WatchDogResult> {
             }
         }
     }
+
+    private ForkedProcess startForkedProcess(int restarts) throws Exception {
+        int consecutiveRestarts = 0;
+        //if there's a bind exception, retry for 5 seconds to give the OS
+        //a chance to release the port
+        int maxBind = 5;
+        while (consecutiveRestarts < maxBind) {
+            try {
+                return new ForkedProcess(restarts);
+            } catch (BindException e) {
+                LOG.warn("WatchDog observes bind exception on retry {}. " +
+                        "Will retry {} times.", consecutiveRestarts, maxBind);
+                consecutiveRestarts++;
+                Thread.sleep(1000);
+                if (consecutiveRestarts > maxBind) {
+                    throw e;
+                }
+            }
+        }
+        throw new RuntimeException("Couldn't start child process");
+    }
+
 
     public void shutDown() {
         shutDown = true;
@@ -214,7 +238,6 @@ public class TikaServerWatchDog implements Callable<WatchDogResult> {
         //        private final DataOutputStream toForked;
         private final Path forkedStatusFile;
         private final ByteBuffer statusBuffer = ByteBuffer.allocate(16);
-        private Thread SHUTDOWN_HOOK = null;
 
         private ForkedProcess(int numRestarts) throws Exception {
             String prefix = tikaServerConfig.getTempFilePrefix();
@@ -244,6 +267,9 @@ public class TikaServerWatchDog implements Callable<WatchDogResult> {
             }
             if (!process.isAlive()) {
                 close();
+                if (process.exitValue() == TikaServerProcess.BIND_EXCEPTION) {
+                    throw new BindException("couldn't bind");
+                }
                 throw new RuntimeException("Failed to start forked process -- forked is not alive");
             }
             if (!Files.exists(forkedStatusFile)) {
@@ -257,7 +283,7 @@ public class TikaServerWatchDog implements Callable<WatchDogResult> {
 
         private ForkedStatus readStatus() throws Exception {
             Instant started = Instant.now();
-            Long elapsed = Duration.between(started, Instant.now()).toMillis();
+            long elapsed = Duration.between(started, Instant.now()).toMillis();
             //only reading, but need to include write to allow for locking
             try (FileChannel fc = FileChannel.open(forkedStatusFile, READ, WRITE)) {
 

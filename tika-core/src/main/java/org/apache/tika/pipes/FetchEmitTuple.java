@@ -16,13 +16,14 @@
  */
 package org.apache.tika.pipes;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.pipes.emitter.EmitKey;
 import org.apache.tika.pipes.fetcher.FetchKey;
 
-public class FetchEmitTuple {
+public class FetchEmitTuple implements Serializable {
 
     public static final ON_PARSE_EXCEPTION DEFAULT_ON_PARSE_EXCEPTION = ON_PARSE_EXCEPTION.EMIT;
 
@@ -30,19 +31,31 @@ public class FetchEmitTuple {
         SKIP, EMIT
     }
 
+    private final String id;
     private final FetchKey fetchKey;
     private EmitKey emitKey;
     private final Metadata metadata;
     private final ON_PARSE_EXCEPTION onParseException;
     private HandlerConfig handlerConfig;
 
-    public FetchEmitTuple(FetchKey fetchKey, EmitKey emitKey, Metadata metadata) {
-        this(fetchKey, emitKey, metadata, HandlerConfig.DEFAULT_HANDLER_CONFIG,
+
+    public FetchEmitTuple(String id, FetchKey fetchKey, EmitKey emitKey) {
+        this(id, fetchKey, emitKey, new Metadata(), HandlerConfig.DEFAULT_HANDLER_CONFIG,
+                DEFAULT_ON_PARSE_EXCEPTION);
+    }
+    public FetchEmitTuple(String id, FetchKey fetchKey, EmitKey emitKey, ON_PARSE_EXCEPTION onParseException) {
+        this(id, fetchKey, emitKey, new Metadata(), HandlerConfig.DEFAULT_HANDLER_CONFIG,
+                onParseException);
+    }
+
+    public FetchEmitTuple(String id, FetchKey fetchKey, EmitKey emitKey, Metadata metadata) {
+        this(id, fetchKey, emitKey, metadata, HandlerConfig.DEFAULT_HANDLER_CONFIG,
                 DEFAULT_ON_PARSE_EXCEPTION);
     }
 
-    public FetchEmitTuple(FetchKey fetchKey, EmitKey emitKey, Metadata metadata,
+    public FetchEmitTuple(String id, FetchKey fetchKey, EmitKey emitKey, Metadata metadata,
                           HandlerConfig handlerConfig, ON_PARSE_EXCEPTION onParseException) {
+        this.id = id;
         this.fetchKey = fetchKey;
         this.emitKey = emitKey;
         this.metadata = metadata;
@@ -50,6 +63,9 @@ public class FetchEmitTuple {
         this.onParseException = onParseException;
     }
 
+    public String getId() {
+        return id;
+    }
     public FetchKey getFetchKey() {
         return fetchKey;
     }
@@ -80,28 +96,36 @@ public class FetchEmitTuple {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
         FetchEmitTuple that = (FetchEmitTuple) o;
-        return Objects.equals(fetchKey, that.fetchKey) && Objects.equals(emitKey, that.emitKey) &&
-                Objects.equals(metadata, that.metadata) &&
-                onParseException == that.onParseException &&
-                Objects.equals(handlerConfig, that.handlerConfig);
+
+        if (!Objects.equals(id, that.id)) return false;
+        if (!Objects.equals(fetchKey, that.fetchKey))
+            return false;
+        if (!Objects.equals(emitKey, that.emitKey)) return false;
+        if (!Objects.equals(metadata, that.metadata))
+            return false;
+        if (onParseException != that.onParseException) return false;
+        return Objects.equals(handlerConfig, that.handlerConfig);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(fetchKey, emitKey, metadata, onParseException, handlerConfig);
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (fetchKey != null ? fetchKey.hashCode() : 0);
+        result = 31 * result + (emitKey != null ? emitKey.hashCode() : 0);
+        result = 31 * result + (metadata != null ? metadata.hashCode() : 0);
+        result = 31 * result + (onParseException != null ? onParseException.hashCode() : 0);
+        result = 31 * result + (handlerConfig != null ? handlerConfig.hashCode() : 0);
+        return result;
     }
 
     @Override
     public String toString() {
-        return "FetchEmitTuple{" + "fetchKey=" + fetchKey + ", emitKey=" + emitKey + ", metadata=" +
-                metadata + ", onParseException=" + onParseException + ", handlerConfig=" +
-                handlerConfig + '}';
+        return "FetchEmitTuple{" + "id='" + id + '\'' + ", fetchKey=" + fetchKey + ", emitKey=" +
+            emitKey + ", metadata=" + metadata + ", onParseException=" + onParseException +
+            ", handlerConfig=" + handlerConfig + '}';
     }
 }

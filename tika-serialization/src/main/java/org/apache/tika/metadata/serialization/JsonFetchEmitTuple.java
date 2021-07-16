@@ -37,6 +37,7 @@ import org.apache.tika.utils.StringUtils;
 
 public class JsonFetchEmitTuple {
 
+    public static final String ID = "id";
     public static final String FETCHER = "fetcher";
     public static final String FETCHKEY = "fetchKey";
     public static final String EMITTER = "emitter";
@@ -50,12 +51,13 @@ public class JsonFetchEmitTuple {
 
 
     public static FetchEmitTuple fromJson(Reader reader) throws IOException {
-        JsonParser jParser = new JsonFactory().createParser(reader);
-        JsonToken token = jParser.nextToken();
-        if (token != JsonToken.START_OBJECT) {
-            throw new IOException("require start object, but see: " + token.name());
+        try (JsonParser jParser = new JsonFactory().createParser(reader)) {
+            JsonToken token = jParser.nextToken();
+            if (token != JsonToken.START_OBJECT) {
+                throw new IOException("require start object, but see: " + token.name());
+            }
+            return parseFetchEmitTuple(jParser);
         }
-        return parseFetchEmitTuple(jParser);
     }
 
 
@@ -64,6 +66,7 @@ public class JsonFetchEmitTuple {
         if (token == JsonToken.START_OBJECT) {
             token = jParser.nextToken();
         }
+        String id = null;
         String fetcherName = null;
         String fetchKey = null;
         String emitterName = null;
@@ -77,7 +80,9 @@ public class JsonFetchEmitTuple {
                 throw new IOException("required field name, but see: " + token.name());
             }
             String name = jParser.getCurrentName();
-            if (FETCHER.equals(name)) {
+            if (ID.equals(name)) {
+                id = getValue(jParser);
+            } else if (FETCHER.equals(name)) {
                 fetcherName = getValue(jParser);
             } else if (FETCHKEY.equals(name)) {
                 fetchKey = getValue(jParser);
@@ -105,8 +110,10 @@ public class JsonFetchEmitTuple {
             }
             token = jParser.nextToken();
         }
-
-        return new FetchEmitTuple(new FetchKey(fetcherName, fetchKey),
+        if (id == null) {
+            id = fetchKey;
+        }
+        return new FetchEmitTuple(id, new FetchKey(fetcherName, fetchKey),
                 new EmitKey(emitterName, emitKey), metadata, handlerConfig, onParseException);
     }
 
@@ -122,17 +129,21 @@ public class JsonFetchEmitTuple {
         int maxEmbeddedResources = -1;
         String fieldName = jParser.nextFieldName();
         while (fieldName != null) {
-            if (HANDLER_CONFIG_TYPE.equals(fieldName)) {
-                String value = jParser.nextTextValue();
-                handlerType = BasicContentHandlerFactory
-                        .parseHandlerType(value, HandlerConfig.DEFAULT_HANDLER_CONFIG.getType());
-            } else if (HANDLER_CONFIG_WRITE_LIMIT.equals(fieldName)) {
-                writeLimit = jParser.nextIntValue(-1);
-            } else if (HANDLER_CONFIG_MAX_EMBEDDED_RESOURCES.equals(fieldName)) {
-                maxEmbeddedResources = jParser.nextIntValue(-1);
-            } else {
-                throw new IllegalArgumentException("I regret I don't understand '" + fieldName +
-                        "' in the context of a handler config");
+            switch (fieldName) {
+                case HANDLER_CONFIG_TYPE:
+                    String value = jParser.nextTextValue();
+                    handlerType = BasicContentHandlerFactory
+                            .parseHandlerType(value, HandlerConfig.DEFAULT_HANDLER_CONFIG.getType());
+                    break;
+                case HANDLER_CONFIG_WRITE_LIMIT:
+                    writeLimit = jParser.nextIntValue(-1);
+                    break;
+                case HANDLER_CONFIG_MAX_EMBEDDED_RESOURCES:
+                    maxEmbeddedResources = jParser.nextIntValue(-1);
+                    break;
+                default:
+                    throw new IllegalArgumentException("I regret I don't understand '" + fieldName +
+                                                       "' in the context of a handler config");
             }
             fieldName = jParser.nextFieldName();
         }
@@ -162,6 +173,7 @@ public class JsonFetchEmitTuple {
 
     static void writeTuple(FetchEmitTuple t, JsonGenerator jsonGenerator) throws IOException {
         jsonGenerator.writeStartObject();
+        jsonGenerator.writeStringField(ID, t.getId());
         jsonGenerator.writeStringField(FETCHER, t.getFetchKey().getFetcherName());
         jsonGenerator.writeStringField(FETCHKEY, t.getFetchKey().getFetchKey());
         jsonGenerator.writeStringField(EMITTER, t.getEmitKey().getEmitterName());
