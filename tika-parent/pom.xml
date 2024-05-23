@@ -400,7 +400,7 @@
     <oak.jackrabbit.version>1.62.0</oak.jackrabbit.version>
     <openjson.version>1.0.13</openjson.version>
     <!-- 2.3.0 requires jdk17 -->
-    <opennlp.version>2.2.0</opennlp.version>
+    <opennlp.version>2.3.3</opennlp.version>
     <ops4j.version>1.5.1</ops4j.version>
     <optimaize.version>0.6</optimaize.version>
     <osgi.compendium.version>5.0.0</osgi.compendium.version>
