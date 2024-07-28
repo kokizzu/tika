@@ -319,7 +319,7 @@
     <azure.core.http.netty.version>1.15.2</azure.core.http.netty.version>
     <azure.storage.blob.version>12.27.0</azure.storage.blob.version>
     <!-- 7.0.0 needs java 17 -->
-    <biz.aqute.version>6.4.1</biz.aqute.version>
+    <biz.aqute.version>7.0.0</biz.aqute.version>
     <boilerpipe.version>1.1.0</boilerpipe.version>
     <!--  used by POI, PDFBox and Jackcess encrypt ...try to sync -->
     <bouncycastle.version>1.78.1</bouncycastle.version>
