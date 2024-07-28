@@ -433,7 +433,7 @@
     <tukaani.version>1.9</tukaani.version>
     <twelvemonkeys.version>3.11.0</twelvemonkeys.version>
     <!-- Apache UIMA v3.5.0 and later requires Java version 17 or later. -->
-    <uimafit.version>3.4.0</uimafit.version>
+    <uimafit.version>3.5.0</uimafit.version>
     <uimaj.core.version>3.4.1</uimaj.core.version>
     <uimaj.cpe.version>3.5.0</uimaj.cpe.version>
     <unit.api.version>2.2</unit.api.version>
