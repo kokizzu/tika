@@ -48,42 +48,42 @@
       <dependency>
         <groupId>io.micronaut</groupId>
         <artifactId>micronaut-inject</artifactId>
-        <version>3.10.4</version>
+        <version>3.10.5</version>
       </dependency>
       <dependency>
         <groupId>io.micronaut</groupId>
         <artifactId>micronaut-runtime</artifactId>
-        <version>3.10.4</version>
+        <version>3.10.5</version>
       </dependency>
       <dependency>
         <groupId>io.micronaut</groupId>
         <artifactId>micronaut-http-server</artifactId>
-        <version>3.10.4</version>
+        <version>3.10.5</version>
       </dependency>
       <dependency>
         <groupId>io.micronaut</groupId>
         <artifactId>micronaut-websocket</artifactId>
-        <version>3.10.4</version>
+        <version>3.10.5</version>
       </dependency>
       <dependency>
         <groupId>io.micronaut</groupId>
         <artifactId>micronaut-http-netty</artifactId>
-        <version>3.10.4</version>
+        <version>3.10.5</version>
       </dependency>
       <dependency>
         <groupId>io.micronaut</groupId>
         <artifactId>micronaut-http</artifactId>
-        <version>3.10.4</version>
+        <version>3.10.5</version>
       </dependency>
       <dependency>
         <groupId>io.micronaut</groupId>
         <artifactId>micronaut-validation</artifactId>
-        <version>3.10.4</version>
+        <version>3.10.5</version>
       </dependency>
       <dependency>
         <groupId>io.micronaut</groupId>
         <artifactId>micronaut-http-client-core</artifactId>
-        <version>3.10.4</version>
+        <version>3.10.5</version>
       </dependency>
       <dependency>
         <groupId>jakarta.inject</groupId>
